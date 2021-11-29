@@ -1,0 +1,34 @@
+# github.com/ReneKroon/ttlcache/v2 v2.9.0
+## explicit; go 1.15
+github.com/ReneKroon/ttlcache/v2
+# github.com/google/uuid v1.3.0
+## explicit
+github.com/google/uuid
+# github.com/gorilla/mux v1.8.0
+## explicit; go 1.12
+github.com/gorilla/mux
+# github.com/groob/plist v0.0.0-20210519001750-9f754062e6d6
+## explicit; go 1.14
+github.com/groob/plist
+# github.com/kelseyhightower/envconfig v1.4.0
+## explicit
+github.com/kelseyhightower/envconfig
+# github.com/korylprince/go-cpio-odc v0.9.4
+## explicit; go 1.17
+github.com/korylprince/go-cpio-odc
+# github.com/korylprince/go-macos-pkg v1.3.5
+## explicit; go 1.17
+github.com/korylprince/go-macos-pkg
+# github.com/korylprince/goxar v0.0.0-20211111233330-e9f257bcdf25
+## explicit; go 1.17
+github.com/korylprince/goxar
+# go.mozilla.org/pkcs7 v0.0.0-20210826202110-33d05740a352
+## explicit; go 1.11
+go.mozilla.org/pkcs7
+# golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
+## explicit; go 1.17
+golang.org/x/crypto/pkcs12
+golang.org/x/crypto/pkcs12/internal/rc2
+# golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+## explicit
+golang.org/x/sync/singleflight
