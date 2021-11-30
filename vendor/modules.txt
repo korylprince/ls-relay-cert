@@ -1,9 +1,21 @@
 # github.com/ReneKroon/ttlcache/v2 v2.9.0
 ## explicit; go 1.15
 github.com/ReneKroon/ttlcache/v2
+# github.com/didip/tollbooth v4.0.2+incompatible
+## explicit
+github.com/didip/tollbooth
+github.com/didip/tollbooth/errors
+github.com/didip/tollbooth/libstring
+github.com/didip/tollbooth/limiter
+# github.com/felixge/httpsnoop v1.0.1
+## explicit; go 1.13
+github.com/felixge/httpsnoop
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
+# github.com/gorilla/handlers v1.5.1
+## explicit; go 1.14
+github.com/gorilla/handlers
 # github.com/gorilla/mux v1.8.0
 ## explicit; go 1.12
 github.com/gorilla/mux
@@ -22,6 +34,9 @@ github.com/korylprince/go-macos-pkg
 # github.com/korylprince/goxar v0.0.0-20211111233330-e9f257bcdf25
 ## explicit; go 1.17
 github.com/korylprince/goxar
+# github.com/patrickmn/go-cache v2.1.0+incompatible
+## explicit
+github.com/patrickmn/go-cache
 # go.mozilla.org/pkcs7 v0.0.0-20210826202110-33d05740a352
 ## explicit; go 1.11
 go.mozilla.org/pkcs7
@@ -32,3 +47,6 @@ golang.org/x/crypto/pkcs12/internal/rc2
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 ## explicit
 golang.org/x/sync/singleflight
+# golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11
+## explicit
+golang.org/x/time/rate

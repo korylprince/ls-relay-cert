@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/didip/tollbooth"
+	"github.com/didip/tollbooth/limiter"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -39,12 +43,28 @@ func RunServer() error {
 	h := &HTTPService{MDM: mdm}
 
 	r := mux.NewRouter()
-	r.Methods("POST").Path("/v1/lsrelay/deliver").Handler(h.DeliverHandler())
-	r.Methods("HEAD", "GET").PathPrefix("/v1/lsrelay/files/").Handler(http.StripPrefix("/v1/lsrelay/files/", h.FileStoreHandler()))
+
+	lmt := tollbooth.NewLimiter(config.DeliverRate/60, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
+		SetIPLookups([]string{"RemoteAddr"})
+	r.Methods("POST").Path("/v1/lsrelay/deliver").Handler(
+		tollbooth.LimitHandler(lmt,
+			h.DeliverHandler()))
+
+	lmt = tollbooth.NewLimiter(config.FileRate/60, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
+		SetIPLookups([]string{"RemoteAddr"})
+	r.Methods("HEAD", "GET").PathPrefix("/v1/lsrelay/files/").Handler(
+		http.StripPrefix("/v1/lsrelay/files/",
+			tollbooth.LimitHandler(lmt,
+				h.FileStoreHandler())))
 
 	logger := NewLogger(os.Stdout)
 
-	return http.ListenAndServe(config.ListenAddr, LogHandler(logger, r))
+	handler := LogHandler(logger, r)
+	if config.ProxyHeaders {
+		handler = handlers.ProxyHeaders(handler)
+	}
+
+	return http.ListenAndServe(config.ListenAddr, handler)
 }
 
 func main() {
