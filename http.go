@@ -53,7 +53,9 @@ func (s *HTTPService) DeliverHandler() http.Handler {
 		if err, ok := body.(error); ok || body == nil {
 			resp := response{Code: code, Description: http.StatusText(code)}
 			body = resp
-			l.Error = err.Error()
+			if ok {
+				l.Error = err.Error()
+			}
 		}
 
 		w.Header().Set("Content-Type", "application/json")
