@@ -27,7 +27,7 @@ func RunServer() error {
 			PayloadVersion:      config.PayloadVersion,
 			PayloadIdentifier:   config.PayloadIdentifier,
 			PayloadUUID:         config.PayloadUUID,
-			PayloadOrganization: config.PayloadUUID,
+			PayloadOrganization: config.PayloadOrganization,
 		},
 	}
 
