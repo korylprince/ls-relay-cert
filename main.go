@@ -44,13 +44,17 @@ func RunServer() error {
 
 	r := mux.NewRouter()
 
-	lmt := tollbooth.NewLimiter(config.DeliverRate/60, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
+	lmt := limiter.New(&limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
+		SetMax(float64(config.DeliverRate) / 60).
+		SetBurst(config.DeliverRate).
 		SetIPLookups([]string{"RemoteAddr"})
 	r.Methods("POST").Path("/v1/lsrelay/deliver").Handler(
 		tollbooth.LimitHandler(lmt,
 			h.DeliverHandler()))
 
-	lmt = tollbooth.NewLimiter(config.FileRate/60, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
+	lmt = limiter.New(&limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
+		SetMax(float64(config.FileRate) / 60).
+		SetBurst(config.FileRate).
 		SetIPLookups([]string{"RemoteAddr"})
 	r.Methods("HEAD", "GET").PathPrefix("/v1/lsrelay/files/").Handler(
 		http.StripPrefix("/v1/lsrelay/files/",
@@ -63,6 +67,8 @@ func RunServer() error {
 	if config.ProxyHeaders {
 		handler = handlers.ProxyHeaders(handler)
 	}
+
+	fmt.Println("Listening on:", config.ListenAddr)
 
 	return http.ListenAndServe(config.ListenAddr, handler)
 }
