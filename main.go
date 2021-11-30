@@ -43,9 +43,8 @@ func RunServer() error {
 	r.Methods("HEAD", "GET").PathPrefix("/v1/lsrelay/files/").Handler(http.StripPrefix("/v1/lsrelay/files/", h.FileStoreHandler()))
 
 	logger := NewLogger(os.Stdout)
-	defer logger.Close()
 
-	return http.ListenAndServeTLS(":443", "./cert.pem", "./key.pem", LogHandler(logger, r))
+	return http.ListenAndServe(config.ListenAddr, LogHandler(logger, r))
 }
 
 func main() {
