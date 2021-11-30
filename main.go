@@ -11,7 +11,7 @@ import (
 
 func RunServer() error {
 	config := new(Config)
-	err := envconfig.Process("", &config)
+	err := envconfig.Process("", config)
 	if err != nil {
 		return fmt.Errorf("could not process configuration from environment: %w", err)
 	}
