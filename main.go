@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,6 +13,39 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
 )
+
+// LimitHandler is a middleware that performs rate-limiting given http.Handler struct.
+func LimitHandler(lmt *limiter.Limiter, next http.Handler) http.Handler {
+	type response struct {
+		Code        int    `json:"code"`
+		Description string `json:"description"`
+	}
+
+	middle := func(w http.ResponseWriter, r *http.Request) {
+		httpError := tollbooth.LimitByRequest(lmt, w, r)
+		if httpError != nil {
+			lmt.ExecOnLimitReached(w, r)
+
+			body := response{Code: httpError.StatusCode, Description: http.StatusText(httpError.StatusCode)}
+			l := r.Context().Value(ContextKeyLog).(*Log)
+			l.Error = httpError.Error()
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(httpError.StatusCode)
+
+			e := json.NewEncoder(w)
+			err := e.Encode(body)
+			if err != nil {
+				l.Error = err.Error()
+			}
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	}
+
+	return http.HandlerFunc(middle)
+}
 
 func RunServer() error {
 	config := new(Config)
@@ -49,7 +83,7 @@ func RunServer() error {
 		SetBurst(config.DeliverRate).
 		SetIPLookups([]string{"RemoteAddr"})
 	r.Methods("POST").Path("/v1/lsrelay/deliver").Handler(
-		tollbooth.LimitHandler(lmt,
+		LimitHandler(lmt,
 			h.DeliverHandler()))
 
 	lmt = limiter.New(&limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
@@ -58,7 +92,7 @@ func RunServer() error {
 		SetIPLookups([]string{"RemoteAddr"})
 	r.Methods("HEAD", "GET").PathPrefix("/v1/lsrelay/files/").Handler(
 		http.StripPrefix("/v1/lsrelay/files/",
-			tollbooth.LimitHandler(lmt,
+			LimitHandler(lmt,
 				h.FileStoreHandler())))
 
 	logger := NewLogger(os.Stdout)
