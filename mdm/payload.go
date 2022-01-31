@@ -1,17 +1,46 @@
-package main
+package mdm
 
 import (
 	"bytes"
+	"crypto/x509"
 	_ "embed"
+	"encoding/pem"
 	"fmt"
 	"text/template"
 
 	macospkg "github.com/korylprince/go-macos-pkg"
+	"github.com/korylprince/ls-relay-cert/cert"
+	"github.com/korylprince/ls-relay-cert/profile"
 )
 
 //go:embed payload.sh
 var payloadScript string
 var tmplPostinstall = template.Must(template.New("payload.sh").Parse(payloadScript))
+
+// GeneratePKI generates and returns a certificate root profile and PEM encoded CA and localhost key pairs with the given CA validity in years
+func GeneratePKI(years int, config *profile.Config) (*profile.TopLevelProfile, *Payload, error) {
+	c, ck, err := cert.GenerateCA(years)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not generate CA key pair: %w", err)
+	}
+
+	lh, lhk, err := cert.GenerateLocalhost(c, ck)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not generate localhost key pair: %w", err)
+	}
+
+	profile, err := profile.New(config, c)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not generate profile: %w", err)
+	}
+
+	return profile, &Payload{
+		CA:           string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: c.Raw})),
+		CAKey:        string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(ck)})),
+		Localhost:    string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: lh.Raw})),
+		LocalhostKey: string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(lhk)})),
+	}, nil
+}
 
 // Payload is the script payload containing CA and localhost key pairs
 type Payload struct {
@@ -28,7 +57,7 @@ func (m *MDM) Deliver(serial string) error {
 		return fmt.Errorf("could not get UDID: %w", err)
 	}
 
-	profile, payload, err := GeneratePKI(m.ProfileConfig)
+	profile, payload, err := GeneratePKI(10, m.Config.Config)
 	if err != nil {
 		return fmt.Errorf("could not generate pki: %w", err)
 	}

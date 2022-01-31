@@ -1,4 +1,4 @@
-package main
+package mdm
 
 import (
 	"bytes"
@@ -13,31 +13,32 @@ import (
 
 	"github.com/groob/plist"
 	macospkg "github.com/korylprince/go-macos-pkg"
+	"github.com/korylprince/ls-relay-cert/profile"
 	"go.mozilla.org/pkcs7"
 	"golang.org/x/crypto/pkcs12"
 )
 
 var ErrNotFound = errors.New("serial not found")
 
-type MDMConfig struct {
+type Config struct {
 	MDMPrefix       string
 	MDMToken        string
 	SigningIdentity string
 	CacheSize       int
 	CacheTTL        time.Duration
 	CachePrefix     string
-	*ProfileConfig
+	*profile.Config
 }
 
 // MDM is a MicroMDM service
 type MDM struct {
-	*MDMConfig
+	*Config
 	cert *x509.Certificate
 	key  *rsa.PrivateKey
 	*FileStore
 }
 
-func NewMDM(config *MDMConfig) (*MDM, error) {
+func New(config *Config) (*MDM, error) {
 	// read "Apple Developer ID Installer" identity
 	identity, err := os.ReadFile(config.SigningIdentity)
 	if err != nil {
@@ -49,7 +50,7 @@ func NewMDM(config *MDMConfig) (*MDM, error) {
 	}
 
 	return &MDM{
-		MDMConfig: config,
+		Config:    config,
 		cert:      cert,
 		key:       key.(*rsa.PrivateKey),
 		FileStore: NewFileStore(config.CacheSize, config.CacheTTL),
@@ -140,7 +141,7 @@ func (m *MDM) Command(cmd map[string]interface{}) error {
 }
 
 // InstallProfile runs the InstallProfile command with the given udid and profile
-func (m *MDM) InstallProfile(udid string, profile *TopLevelProfile) error {
+func (m *MDM) InstallProfile(udid string, profile *profile.TopLevelProfile) error {
 	// marshal plist
 	buf, err := plist.Marshal(profile)
 	if err != nil {

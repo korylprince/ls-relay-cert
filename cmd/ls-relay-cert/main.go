@@ -12,6 +12,8 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/korylprince/ls-relay-cert/mdm"
+	"github.com/korylprince/ls-relay-cert/profile"
 )
 
 // LimitHandler is a middleware that performs rate-limiting given http.Handler struct.
@@ -54,14 +56,14 @@ func RunServer() error {
 		return fmt.Errorf("could not process configuration from environment: %w", err)
 	}
 
-	mdmConfig := &MDMConfig{
+	mdmConfig := &mdm.Config{
 		MDMPrefix:       config.MDMPrefix,
 		MDMToken:        config.MDMToken,
 		SigningIdentity: config.SigningIdentity,
 		CacheSize:       config.CacheSize,
 		CacheTTL:        config.CacheTTL,
 		CachePrefix:     config.CachePrefix,
-		ProfileConfig: &ProfileConfig{
+		Config: &profile.Config{
 			PayloadVersion:      config.PayloadVersion,
 			PayloadIdentifier:   config.PayloadIdentifier,
 			PayloadUUID:         config.PayloadUUID,
@@ -69,7 +71,7 @@ func RunServer() error {
 		},
 	}
 
-	mdm, err := NewMDM(mdmConfig)
+	mdm, err := mdm.New(mdmConfig)
 	if err != nil {
 		return fmt.Errorf("could not create mdm: %w", err)
 	}

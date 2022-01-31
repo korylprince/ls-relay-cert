@@ -3,7 +3,7 @@ FROM golang:1 as builder
 ARG VERSION
 
 RUN go install github.com/korylprince/fileenv@v1.1.0
-RUN go install "github.com/korylprince/ls-relay-cert@$VERSION"
+RUN go install "github.com/korylprince/ls-relay-cert/cmd/ls-relay-cert@$VERSION"
 
 RUN apt-get update && apt-get install -y \
     curl \

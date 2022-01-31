@@ -1,4 +1,4 @@
-package main
+package profile
 
 import (
 	"crypto/x509"
@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// ProfileConfig is used to specify defaults for the generated profile
-type ProfileConfig struct {
+// Config is used to specify defaults for the generated profile
+type Config struct {
 	// PayloadVersion is the version of the inner payload
 	PayloadVersion int
 	// PayloadIdentifier is used as the top level identifier, and a prefix for the inner payload
@@ -74,8 +74,8 @@ type CertificateRootProfile struct {
 	PayloadContent []byte
 }
 
-// NewProfile returns a profile for the given ca certificate
-func NewProfile(config *ProfileConfig, ca *x509.Certificate) (*TopLevelProfile, error) {
+// New returns a profile for the given ca certificate
+func New(config *Config, ca *x509.Certificate) (*TopLevelProfile, error) {
 	u, err := uuid.NewRandom()
 	if err != nil {
 		return nil, fmt.Errorf("could not generate uuid: %w", err)

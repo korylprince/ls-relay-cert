@@ -1,4 +1,4 @@
-package main
+package cert
 
 import (
 	"crypto/rand"
@@ -6,14 +6,13 @@ import (
 	"crypto/sha512"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/pem"
 	"fmt"
 	"math/big"
 	"time"
 )
 
-// GenerateCA generates a new CA key pair
-func GenerateCA() (*x509.Certificate, *rsa.PrivateKey, error) {
+// GenerateCA generates a new CA key pair with the given validity in years
+func GenerateCA(years int) (*x509.Certificate, *rsa.PrivateKey, error) {
 	buf := make([]byte, 16)
 	if _, err := rand.Read(buf); err != nil {
 		return nil, nil, fmt.Errorf("could not generate serial: %w", err)
@@ -42,7 +41,7 @@ func GenerateCA() (*x509.Certificate, *rsa.PrivateKey, error) {
 		},
 		SubjectKeyId:          ski[:],
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(10, 0, 0),
+		NotAfter:              time.Now().AddDate(years, 0, 0),
 		IsCA:                  true,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
@@ -104,29 +103,4 @@ func GenerateLocalhost(ca *x509.Certificate, caKey *rsa.PrivateKey) (*x509.Certi
 	}
 
 	return cert, key, nil
-}
-
-// GeneratePKI generates and returns a certificate root profile and PEM encoded CA and localhost key pairs
-func GeneratePKI(config *ProfileConfig) (*TopLevelProfile, *Payload, error) {
-	c, ck, err := GenerateCA()
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not generate CA key pair: %w", err)
-	}
-
-	lh, lhk, err := GenerateLocalhost(c, ck)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not generate localhost key pair: %w", err)
-	}
-
-	profile, err := NewProfile(config, c)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not generate profile: %w", err)
-	}
-
-	return profile, &Payload{
-		CA:           string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: c.Raw})),
-		CAKey:        string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(ck)})),
-		Localhost:    string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: lh.Raw})),
-		LocalhostKey: string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(lhk)})),
-	}, nil
 }

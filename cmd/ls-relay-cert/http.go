@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/korylprince/ls-relay-cert/mdm"
 )
 
 type HTTPService struct {
-	*MDM
+	*mdm.MDM
 }
 
 // DeliverHandler delivers the payload to the serial number specified in the request
@@ -36,7 +38,7 @@ func (s *HTTPService) DeliverHandler() http.Handler {
 			l.SerialNumber = req.SerialNumber
 
 			if err := s.Deliver(req.SerialNumber); err != nil {
-				if errors.Is(err, ErrNotFound) {
+				if errors.Is(err, mdm.ErrNotFound) {
 					return http.StatusNotFound, err
 				}
 				return http.StatusInternalServerError, fmt.Errorf("could not deliver payload: %w", err)
@@ -88,7 +90,7 @@ func (s *HTTPService) FileStoreHandler() http.Handler {
 		if err != nil {
 			l.Error = err.Error()
 
-			if errors.Is(err, ErrNotFound) {
+			if errors.Is(err, mdm.ErrNotFound) {
 				w.WriteHeader(http.StatusNotFound)
 				w.Write([]byte("404 Not Found"))
 				return

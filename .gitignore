@@ -1,3 +1,4 @@
 *.swp
-ls-relay-cert
+/cmd/ls-relay-cert/ls-relay-cert
+/cmd/gen-ls-cert/gen-ls-cert
 env
