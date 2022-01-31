@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/groob/plist"
 	"github.com/korylprince/ls-relay-cert/mdm"
 	"github.com/korylprince/ls-relay-cert/profile"
@@ -14,12 +16,15 @@ import (
 func main() {
 	flVersion := flag.Int("version", 1, "The version used for the profile")
 	flIdentifier := flag.String("identifier", "com.github.korylprince.ls-relay-cert", "The top level profile identifier, and a prefix for the inner payload")
-	flUUID := flag.String("uuid", "F2BB803E-F323-4BCE-B908-4C61C1CBFB2C", "The UUID used for the profile")
+	flUUID := flag.String("uuid", "randomly generated", "The UUID used for the profile")
 	flOrg := flag.String("org", "Lightspeed Systems", "The organization used for the profile")
 	flYears := flag.Int("years", 10, "The number of years to use for the CA")
 	flOutput := flag.String("out", ".", "Output directory")
-
 	flag.Parse()
+
+	if *flUUID == "randomly generated" {
+		*flUUID = strings.ToUpper(uuid.NewString())
+	}
 
 	prof, certs, err := mdm.GeneratePKI(*flYears, &profile.Config{
 		PayloadVersion:      *flVersion,
